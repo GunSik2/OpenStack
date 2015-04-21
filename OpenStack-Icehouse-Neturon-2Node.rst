@@ -12,6 +12,7 @@ This document is based on `the OpenStack Official Documentation <http://docs.ope
 :Keywords: OpenStack, Icehouse, Heat, Neutron, Nova, Ubuntu 14.04, Glance, Horizon
 
 ===============================
+
 **Authors:**
 Copyright (C) `GunSik Choi <https://www.linkedin.com/in/cgshome>`_
 
