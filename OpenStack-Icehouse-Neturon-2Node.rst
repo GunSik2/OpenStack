@@ -1089,9 +1089,14 @@ Your contributions are welcome, as are questions and requests for help :)
 Hope this manual will be helpful and simple!
 
 
-A special wink at all the interesting works on the previous standard installation of OpenStack ;) especially: 
+A special wink at all the interesting works on the previous standard installation of OpenStack and variotion of installation ;) especially: 
 
 https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/
+
+https://fosskb.wordpress.com/2014/06/10/managing-openstack-internaldataexternal-network-in-one-interface/
+
+http://naleejang.tistory.com/131
+
 
 License
 =======
