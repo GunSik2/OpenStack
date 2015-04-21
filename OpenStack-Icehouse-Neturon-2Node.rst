@@ -687,8 +687,8 @@ Install the dashboard Service (Horizon)
 * Check OpenStack Dashboard at http://192.168.100.21/horizon. login admin/admin_pass
 
 
-Network Modules 
-------------
+Install Network moduels
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now, let's move to second step!
 
@@ -881,8 +881,6 @@ Finally, let's install the services on the compute node!
 
 It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and layer 2 agent.  
 
-.. image:: https://raw.githubusercontent.com/ChaimaGhribi/OpenStack-Icehouse-Installation/master/images/compute.jpg
-		:align: center
 
 * Update and Upgrade your System::
 
