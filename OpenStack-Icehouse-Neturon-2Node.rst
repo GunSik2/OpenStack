@@ -1089,11 +1089,7 @@ Your contributions are welcome, as are questions and requests for help :)
 Hope this manual will be helpful and simple!
 
 
-A special wink at all the interesting works on the previous versions of OpenStack ;) especially: 
-
-https://github.com/fornyx/OpenStack-Havana-Install-Guide/blob/master/OpenStack-Havana-Install-Guide.rst
-
-https://github.com/mseknibilel/OpenStack-Grizzly-Install-Guide/blob/OVS_MultiNode/OpenStack_Grizzly_Install_Guide.rst
+A special wink at all the interesting works on the previous standard installation of OpenStack ;) especially: 
 
 https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/
 
@@ -1103,7 +1099,7 @@ Institut Open PaaS
 
 Copyright (C) 2014  Authors
 
-Original Authors - Chaima GunSik Choi
+Original Authors - GunSik Choi
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except 
@@ -1122,5 +1118,5 @@ in compliance with the License. You may obtain a copy of the License at::
 Contacts
 ========
 
-GunSik Choi : cgshome@gmail.com
+GunSik Choi : cgshome at gmail.com
 
