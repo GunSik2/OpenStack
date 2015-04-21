@@ -1,6 +1,7 @@
 ####
 OpenStack Icehouse Installation - 2 node with 2 N/W Interfaces
 ####
+
 Welcome to OpenStack Icehouse installation manual !
 
 This document is based on `the OpenStack Official Documentation <http://docs.openstack.org/icehouse/install-guide/install/apt/content/index.html>`_ for Icehouse. 
