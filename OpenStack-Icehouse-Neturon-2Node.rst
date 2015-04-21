@@ -182,10 +182,6 @@ such as MySql database, message broker (RabbitMQ), and NTP.
 An additional install guide for optional services (Heat, Cinder...) will be provided in the near future ;) 
 
 
-
-.. image:: https://raw.githubusercontent.com/ChaimaGhribi/OpenStack-Icehouse-Installation/master/images/controller.jpg
-    	:align: center
-	
 Install the supporting services (MySQL and RabbitMQ)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -229,7 +225,6 @@ Install the supporting services (MySQL and RabbitMQ)
 * Install RabbitMQ (Message Queue)::
 
    apt-get install -y rabbitmq-server
-
 
 
 Install the Identity Service (Keystone)
@@ -303,7 +298,7 @@ Install the Identity Service (Keystone)
     
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
-    --publicurl=http://192.168.100.11:5000/v2.0 \
+    --publicurl=http://192.168.100.21:5000/v2.0 \
     --internalurl=http://controller:5000/v2.0 \
     --adminurl=http://controller:35357/v2.0
 
@@ -316,7 +311,7 @@ Install the Identity Service (Keystone)
     export OS_TENANT_NAME=admin
     export OS_USERNAME=admin
     export OS_PASSWORD=admin_pass
-    export OS_AUTH_URL="http://192.168.100.11:5000/v2.0/"
+    export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
 
     vi admin_creds
     #Paste the following: 
@@ -374,7 +369,7 @@ Install the image Service (Glance)
     keystone service-create --name=glance --type=image --description="OpenStack Image Service"
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ image / {print $2}') \
-    --publicurl=http://192.168.100.11:9292 \
+    --publicurl=http://192.168.100.21:9292 \
     --internalurl=http://controller:9292 \
     --adminurl=http://controller:9292
 
@@ -474,7 +469,7 @@ Install the compute Service (Nova)
     keystone service-create --name=nova --type=compute --description="OpenStack Compute"
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ compute / {print $2}') \
-    --publicurl=http://192.168.100.11:8774/v2/%\(tenant_id\)s \
+    --publicurl=http://192.168.100.21:8774/v2/%\(tenant_id\)s \
     --internalurl=http://controller:8774/v2/%\(tenant_id\)s \
     --adminurl=http://controller:8774/v2/%\(tenant_id\)s
 
@@ -489,9 +484,9 @@ Install the compute Service (Nova)
     [DEFAULT]
     rpc_backend = rabbit
     rabbit_host = controller
-    my_ip = 10.0.0.11
-    vncserver_listen = 10.0.0.11
-    vncserver_proxyclient_address = 10.0.0.11
+    my_ip = 10.0.1.21
+    vncserver_listen = 10.0.1.21
+    vncserver_proxyclient_address = 10.0.1.21
     auth_strategy = keystone
     
     [keystone_authtoken]
@@ -560,7 +555,7 @@ Install the network Service (Neutron)
     
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ network / {print $2}') \
-    --publicurl=http://192.168.100.11:9696 \
+    --publicurl=http://192.168.100.21:9696 \
     --internalurl=http://controller:9696 \
     --adminurl=http://controller:9696 
 
@@ -664,7 +659,7 @@ Install the dashboard Service (Horizon)
 * Edit /etc/openstack-dashboard/local_settings.py::
     
     vi /etc/openstack-dashboard/local_settings.py
-    ALLOWED_HOSTS = ['localhost', '192.168.100.11']
+    ALLOWED_HOSTS = ['localhost', '192.168.100.21']
     OPENSTACK_HOST = "controller"
 
 * Reload Apache and memcached::
@@ -687,35 +682,16 @@ Install the dashboard Service (Horizon)
     service apache2 restart; service memcached restart
 
 
-* Check OpenStack Dashboard at http://192.168.100.11/horizon. login admin/admin_pass
+* Check OpenStack Dashboard at http://192.168.100.21/horizon. login admin/admin_pass
 
 
-Network Node
+Network Modules 
 ------------
 
 Now, let's move to second step!
 
 The network node runs the Networking plug-in and different agents (see the Figure below).
 
-
-.. image:: https://raw.githubusercontent.com/ChaimaGhribi/OpenStack-Icehouse-Installation/master/images/network.jpg
-     	 :align: center
-
-* Update and Upgrade your System::
-
-    apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade
-
-* Install NTP service::
-   
-   apt-get install -y ntp
-
-* Set your network node to follow up your conroller node::
-    
-    sed -i 's/server ntp.ubuntu.com/server controller/g' /etc/ntp.conf
-
-* Restart NTP service::
-
-    service ntp restart
 
 * Install other services::
 
@@ -835,18 +811,18 @@ The network node runs the Networking plug-in and different agents (see the Figur
     ovs-vsctl add-br br-ex
 
 
-* Add the eth2 to the br-ex::
+* Add the eth0 to the br-ex::
 
     #Internet connectivity will be lost after this step but this won't affect OpenStack's work
-    ovs-vsctl add-port br-ex eth2
+    ovs-vsctl add-port br-ex eth0
 
 * Edit /etc/network/interfaces::
 
     vi /etc/network/interfaces
     
     # The public network interface
-    auto eth2
-    iface eth2 inet manual
+    auto eth0
+    iface eth0 inet manual
     up ifconfig $IFACE 0.0.0.0 up
     up ip link set $IFACE promisc on
     down ip link set $IFACE promisc off
@@ -861,7 +837,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
 
 * Restart network::
 
-    ifdown eth2 && ifup eth2
+    ifdown eth0 && ifup eth0
 
     ifdown br-ex && ifup br-ex
 
@@ -889,7 +865,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
     export OS_TENANT_NAME=admin
     export OS_USERNAME=admin
     export OS_PASSWORD=admin_pass
-    export OS_AUTH_URL="http://192.168.100.11:5000/v2.0/"
+    export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
 
 * Check Neutron agents::
 
@@ -961,11 +937,11 @@ It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and laye
     auth_strategy = keystone
     rpc_backend = rabbit
     rabbit_host = controller
-    my_ip = 10.0.0.31
+    my_ip = 10.0.1.31
     vnc_enabled = True
     vncserver_listen = 0.0.0.0
-    vncserver_proxyclient_address = 10.0.0.31
-    novncproxy_base_url = http://192.168.100.11:6080/vnc_auto.html
+    vncserver_proxyclient_address = 10.0.1.31
+    novncproxy_base_url = http://192.168.100.21:6080/vnc_auto.html
     glance_host = controller
     vif_plugging_is_fatal=false
     vif_plugging_timeout=0
@@ -1119,15 +1095,15 @@ https://github.com/fornyx/OpenStack-Havana-Install-Guide/blob/master/OpenStack-H
 
 https://github.com/mseknibilel/OpenStack-Grizzly-Install-Guide/blob/OVS_MultiNode/OpenStack_Grizzly_Install_Guide.rst
 
-
+https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/
 
 License
 =======
-Institut Mines Télécom - Télécom SudParis  
+Institut Open PaaS  
 
 Copyright (C) 2014  Authors
 
-Original Authors - Chaima Ghribi and Marouen Mechtri
+Original Authors - Chaima GunSik Choi
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except 
@@ -1146,8 +1122,5 @@ in compliance with the License. You may obtain a copy of the License at::
 Contacts
 ========
 
-Chaima Ghribi: chaima.ghribi@it-sudparis.eu
+GunSik Choi : cgshome@gmail.com
 
-Marouen Mechtri : marouen.mechtri@it-sudparis.eu
-
-Forked from https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/
