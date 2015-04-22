@@ -1,5 +1,5 @@
 ####
-OpenStack Icehouse Installation - 2 node with 2 N/W Interfaces
+OpenStack Icehouse 설치 가이드 - 2 개 N/W 인터페이스를 갖는 2개 노드
 ####
 
 Welcome to OpenStack Icehouse installation manual !
@@ -224,16 +224,17 @@ Install the supporting services (MySQL and RabbitMQ)
     mysql_install_db
     mysql_secure_installation
 
-* Install RabbitMQ (Message Queue)::
+* Install RabbitMQ (Message Queue) & change default password::
 
    apt-get install -y rabbitmq-server
+   rabbitmqctl change_password guest rabbitpass
 
 
 Install the Identity Service (Keystone)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * Install keystone packages::
 
-    apt-get install -y keystone
+    apt-get install -y keystone python-keystoneclient
 
 * Create a MySQL database for keystone::
 
