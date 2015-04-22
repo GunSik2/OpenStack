@@ -32,7 +32,7 @@ In this installation guide, we cover the step-by-step process of installing Open
 We have deployed a single compute node (see the Figure below) but you can simply add more compute nodes to our multi-node installation, if needed.  
 
 
-.. image:: https://raw.githubusercontent.com/ChaimaGhribi/OpenStack-Icehouse-Installation/master/images/network-topo.jpg
+.. image:: https://github.com/GunSik2/OpenStack/blob/master/images/arch1.png
 
 For OpenStack Multi-Node setup you need to create two networks:
 
