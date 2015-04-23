@@ -270,7 +270,8 @@ Install the Identity Service (Keystone)
 
 * Check synchronization::
         
-    mysql -u root -p keystone
+    mysql -u keystone -p 
+    show databases;
     show TABLES;
 
 
