@@ -716,27 +716,6 @@ The network node runs the Networking plug-in and different agents (see the Figur
 
     apt-get install -y neutron-plugin-ml2 neutron-plugin-openvswitch-agent dnsmasq neutron-l3-agent neutron-dhcp-agent
 
-* Update /etc/neutron/neutron.conf::
-
-    vi /etc/neutron/neutron.conf
-
-    [DEFAULT]
-    auth_strategy = keystone
-    rpc_backend = neutron.openstack.common.rpc.impl_kombu
-    rabbit_host = controller
-    replace  core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin with
-    core_plugin = ml2
-    service_plugins = router
-    allow_overlapping_ips = True
-    
-    [keystone_authtoken]
-    auth_uri = http://controller:5000
-    auth_host = controller
-    auth_port = 35357
-    auth_protocol = http
-    admin_tenant_name = service
-    admin_user = neutron
-    admin_password = service_pass
 
 * Edit the /etc/neutron/l3_agent.ini::
 
@@ -823,6 +802,14 @@ The network node runs the Networking plug-in and different agents (see the Figur
 * Edit /etc/network/interfaces::
 
     vi /etc/network/interfaces
+    #  comment out the following part and add the next part.
+    # The management & public network interface
+    #  auto eth0
+    #  iface eth0 inet static
+    #  address 192.168.100.21
+    #  netmask 255.255.255.0
+    #  gateway 192.168.100.1
+    #  dns-nameservers 8.8.8.8
     
     # The public network interface
     auto eth0
