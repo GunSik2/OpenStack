@@ -80,45 +80,55 @@ Create a ubuntu instace
 Use Console Command 
 ^^^^^^^^^^^^^^^^^^^^
 
-* Generate a key pair:
+* Generate a key pair::
+
     ssh-keygen -f demo-key
 
-* Add the public key:
+* Add the public key::
+
     source demo_creds
     nova keypair-add --pub-key demo-key.pub demo-key
 
-* Verify the public key is added:
+* Verify the public key is added::
+
     nova keypair-list
   
-* Add rules to the default security group to access your instance remotely:
+* Add rules to the default security group to access your instance remotely::
+
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
   
-* Launch an instance:
+* Launch an instance::
+
     NET_ID=$(neutron net-list | awk '/ demo-net / { print $2 }')
     nova boot --flavor m1.tiny --image cirros-0.3.2-x86_64 --nic net-id=$NET_ID \
     --security-group default --key-name demo-key instance1
 
-* Note: To choose your instance parameters you can use these commands:
+* Note: To choose your instance parameters you can use these commands::
+
     nova flavor-list   : --flavor m1.tiny
     nova image-list    : --image cirros-0.3.2-x86_64
     neutron net-list   : --nic net-id=$NET_ID
     nova secgroup-list : --security-group default
     nova keypair-list  : --key-name demo-key
   
-* Check the status of your instance:
+* Check the status of your instance::
+
     nova list
   
-* Create a floating IP address on the external network
+* Create a floating IP address on the external network::
+
     neutron floatingip-create ext-net
 
-* Associate the floating IP address with your instance:
+* Associate the floating IP address with your instance::
+
     nova floating-ip-associate instance1 192.168.100.102
 
-* Check the status of your floating IP address:
+* Check the status of your floating IP address::
+
     ping 192.168.100.102
     
-    # ssh into your vm using its ip address:
+    # ssh into your vm using its ip address
     ssh cirros@192.168.100.102
 
 
