@@ -46,7 +46,7 @@ the instance will connect.
 
 * Create an internal (tenant) network::
 
-    source demo-creds
+    source demo_creds
     
     #Create the internal network:
     neutron net-create demo-net
@@ -57,7 +57,7 @@ the instance will connect.
 
 * Create a router on the internal network and attach it to the external network::
 
-    source creds
+    source demo_creds
     
     #Create the router:
     neutron router-create demo-router
@@ -81,11 +81,11 @@ Use Console Command
 ^^^^^^^^^^^^^^^^^^^^
 
 * Generate a key pair:
-    ssh-keygen -f vm
+    ssh-keygen -f demo-key
 
 * Add the public key:
-    source creds
-    nova keypair-add --pub-key vm.pub key1
+    source demo_creds
+    nova keypair-add --pub-key demo-key.pub demo-key
 
 * Verify the public key is added:
     nova keypair-list
@@ -94,26 +94,17 @@ Use Console Command
     nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
   
-* Create demo credential info ::
-    vi demo_creds
-      export OS_USERNAME=demo
-      export OS_PASSWORD=demo_pass
-      export OS_TENANT_NAME=demo
-      export OS_AUTH_URL=http://controller:35357/v2.0
-    
-    souce demo_creds
-
 * Launch an instance:
-    NET_ID=$(neutron net-list | awk '/ int-net / { print $2 }')
+    NET_ID=$(neutron net-list | awk '/ demo-net / { print $2 }')
     nova boot --flavor m1.tiny --image cirros-0.3.2-x86_64 --nic net-id=$NET_ID \
-    --security-group default --key-name key1 instance1
+    --security-group default --key-name demo-key instance1
 
 * Note: To choose your instance parameters you can use these commands:
     nova flavor-list   : --flavor m1.tiny
     nova image-list    : --image cirros-0.3.2-x86_64
     neutron net-list   : --nic net-id=$NET_ID
     nova secgroup-list : --security-group default
-    nova keypair-list  : --key-name key1
+    nova keypair-list  : --key-name demo-key
   
 * Check the status of your instance:
     nova list
