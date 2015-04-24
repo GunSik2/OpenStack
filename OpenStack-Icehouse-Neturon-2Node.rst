@@ -203,7 +203,7 @@ Install the supporting services (MySQL and RabbitMQ)
 * Set the bind-address key to the management IP address of the controller node::
 
     vi /etc/mysql/my.cnf
-    bind-address = 10.0.0.11
+    bind-address = 10.0.1.21
 
 * Under the [mysqld] section, set the following keys to enable InnoDB, UTF-8 character set, and UTF-8 collation by default::
 
@@ -224,10 +224,9 @@ Install the supporting services (MySQL and RabbitMQ)
     mysql_install_db
     mysql_secure_installation
 
-* Install RabbitMQ (Message Queue) & change default password::
+* Install RabbitMQ (Message Queue) ::
 
    apt-get install -y rabbitmq-server
-   rabbitmqctl change_password guest rabbitpass
 
 
 Install the Identity Service (Keystone)
@@ -255,7 +254,7 @@ Install the Identity Service (Keystone)
      vi /etc/keystone/keystone.conf
   
     [database]
-    replace connection = sqlite:////var/lib/keystone/keystone.db by
+    # replace connection = sqlite:////var/lib/keystone/keystone.db by
     connection = mysql://keystone:KEYSTONE_DBPASS@controller/keystone
     
     [DEFAULT]
@@ -382,7 +381,7 @@ Install the image Service (Glance)
     vi /etc/glance/glance-api.conf
     
     [database]
-    replace sqlite_db = /var/lib/glance/glance.sqlite with
+    # replace sqlite_db = /var/lib/glance/glance.sqlite with
     connection = mysql://glance:GLANCE_DBPASS@controller/glance
     
     [DEFAULT]
@@ -407,7 +406,7 @@ Install the image Service (Glance)
     vi /etc/glance/glance-registry.conf
     
     [database]
-    replace sqlite_db = /var/lib/glance/glance.sqlite with:
+    # replace sqlite_db = /var/lib/glance/glance.sqlite with:
     connection = mysql://glance:GLANCE_DBPASS@controller/glance
     
     [keystone_authtoken]
@@ -569,11 +568,11 @@ Install the network Service (Neutron)
     vi /etc/neutron/neutron.conf
     
     [database]
-    replace connection = sqlite:////var/lib/neutron/neutron.sqlite with
+    # replace connection = sqlite:////var/lib/neutron/neutron.sqlite with
     connection = mysql://neutron:NEUTRON_DBPASS@controller/neutron
     
     [DEFAULT]
-    replace  core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin with
+    # replace  core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin with
     core_plugin = ml2
     service_plugins = router
     allow_overlapping_ips = True
@@ -870,6 +869,8 @@ Finally, let's install the services on the compute node!
 
 It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and layer 2 agent.  
 
+Install Compute
+^^^^^^^^^^^^^^^^
 
 * Update and Upgrade your System::
 
@@ -956,6 +957,9 @@ It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and laye
     service nova-compute restart
 
 
+Install Network
+^^^^^^^^^^^^^^^^
+
 * Edit /etc/sysctl.conf to contain the following::
 
     vi /etc/sysctl.conf
@@ -978,7 +982,7 @@ It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and laye
     
     [DEFAULT]
     auth_strategy = keystone
-    replace  core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin with
+    # replace  core_plugin = neutron.plugins.ml2.plugin.Ml2Plugin with
     core_plugin = ml2
     service_plugins = router
     allow_overlapping_ips = True
