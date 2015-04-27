@@ -756,12 +756,13 @@ Install the block stroage Service (Cinder)
        connection = mysql://cinder:CINDER_PASS@controller/cinder
 
    * Restart cinder services::
+   
        service cinder-scheduler restart
        service cinder-api restart
 
 (2) Configure a Block Storage service node
 
-   * Install the cinder services::
+   * Configure the block storage (assumes a second disk /dev/sdb3 that is used for  LVM physical and logical volumes)::
    
        apt-get install lvm2
        pvcreate /dev/sdb3
@@ -775,6 +776,7 @@ Install the block stroage Service (Cinder)
        }
 
    * Install the cinder serivces::
+   
        apt-get install cinder-volume
        vi /etc/cinder/cinder.conf
        [keystone_authtoken]
