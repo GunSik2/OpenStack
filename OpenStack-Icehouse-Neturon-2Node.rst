@@ -443,6 +443,7 @@ Install the image Service (Glance)
     glance image-list
 
 
+
 Install the compute Service (Nova)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -529,7 +530,7 @@ Install the compute Service (Nova)
 
     source creds
     nova image-list
-    
+   
 Install the network Service (Neutron)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -686,6 +687,128 @@ Install the dashboard Service (Horizon)
 
 
 * Check OpenStack Dashboard at http://192.168.100.21/horizon. login admin/admin_pass
+
+
+Install the block stroage Service (Cinder)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Block storage consists of the following three components:
+    - cinder-api
+    - cinder-scheduler
+    - cinder-volume
+  The first two services are installed on controller node and the last on the service node for storage.
+  If the controller node has storage, the last service can also be installed on the controller.
+  The document separtes the two nodes.
+  
+(1) Configure a Block Storage service controller
+
+   * Install the cinder services::
+   
+       apt-get -y install cinder-api cinder-scheduler
+
+   * Create a MySql database for Cinder::
+   
+       mysql -u root -p
+       CREATE DATABASE cinder;
+       GRANT ALL ON cinder.* TO 'cinder'@'localhost' IDENTIFIED BY 'CINDER_PASS';
+       GRANT ALL ON cinder.* TO 'cinder'@'%' IDENTIFIED BY 'CINDER_PASS';
+       exit;
+       
+       rm /var/lib/cinder/cinder.sqlite
+       cinder-manage db sync
+   
+   * Register the service and create the endpoint::
+
+       source admin_creds
+       keystone user-create --name=cinder --pass=CINDER_PASS --email=cinder@email.com
+       keystone user-role-add --user=cinder --tenant=service --role=admin
+       keystone service-create --name=cinder --type=volume --description="OpenStack Block Storage"
+       keystone endpoint-create \
+         --service-id=$(keystone service-list | awk '/ volume / {print $2}') \
+         --publicurl=http://controller:8776/v1/%\(tenant_id\)s \
+         --internalurl=http://controller:8776/v1/%\(tenant_id\)s \
+         --adminurl=http://controller:8776/v1/%\(tenant_id\)s
+         
+       keystone service-create --name=cinderv2 --type=volumev2 --description="OpenStack Block Storage v2"
+       keystone endpoint-create \
+         --service-id=$(keystone service-list | awk '/ volumev2 / {print $2}') \
+         --publicurl=http://controller:8776/v2/%\(tenant_id\)s \
+         --internalurl=http://controller:8776/v2/%\(tenant_id\)s \
+         --adminurl=http://controller:8776/v2/%\(tenant_id\)s
+
+   * Configure the cinder services::
+
+       sudo vi /etc/cinder/cinder.conf
+       [DEFAULT]
+       rpc_backend = cinder.openstack.common.rpc.impl_kombu
+       rabbit_host = controller
+       rabbit_port = 5672
+       …
+       [keystone_authtoken]
+       auth_uri = http://controller:5000
+       auth_host = controller
+       auth_port = 35357
+       auth_protocol = http
+       admin_tenant_name = service
+       admin_user = cinder
+       admin_password = CINDER_PASS
+       [database]
+       connection = mysql://cinder:CINDER_PASS@controller/cinder
+
+   * Restart cinder services::
+       service cinder-scheduler restart
+       service cinder-api restart
+
+(2) Configure a Block Storage service node
+
+   * Install the cinder services::
+   
+       apt-get install lvm2
+       pvcreate /dev/sdb3
+       vgcreate cinder-volumes /dev/sdb3
+       
+       vi /etc/lvm/lvm.conf
+       devices {
+       ...
+       filter = [ "a/sda1/", "a/sdb3/", "r/.*/"]
+       ...
+       }
+
+   * Install the cinder serivces::
+       apt-get install cinder-volume
+       vi /etc/cinder/cinder.conf
+       [keystone_authtoken]
+       auth_uri = http://controller:5000
+       auth_host = controller
+       auth_port = 35357
+       auth_protocol = http
+       admin_tenant_name = service
+       admin_user = cinder
+       admin_password = CINDER_PASS
+       ...
+       [DEFAULT]
+       rpc_backend = rabbit
+       rabbit_host = controller
+       rabbit_port = 5672
+       ...
+       my_ip = 10.0.1.21         
+       glance_host = controller
+       ...
+       [database]
+       connection = mysql://cinder:CINDER_DBPASS@controller/cinder
+
+   * Restart cinder volume services::
+
+       service cinder-volume restart  
+       service tgt restart
+
+(3) Verify the Block Storage installation
+
+   * Test the cinder services::
+   
+       source demo_creds
+       cinder create --display-name myVolume 1
+       cinder list
 
 
 Install Network moduels
@@ -861,6 +984,8 @@ The network node runs the Networking plug-in and different agents (see the Figur
 
     source creds
     neutron agent-list
+
+
 
 Compute Node
 ------------
@@ -1048,14 +1173,15 @@ Install Network
     firewall_driver = nova.virt.firewall.NoopFirewallDriver
     security_group_api = neutron
 
-* Edit /etc/nova/nova-compute.conf with the correct hypervisor type (set to qemu if using virtualbox for example, kvm is default) ::
+* Edit /etc/nova/nova-compute.conf with the correct hypervisor type 
+  (set to qemu if using virtualbox for example, kvm is default) ::
 
     vi /etc/nova/nova-compute.conf
     
     [DEFAULT]
     compute_driver=libvirt.LibvirtDriver
     [libvirt]
-    virt_type=qemu
+    virt_type=kvm
 
 
 * Restart nova-compute services::
