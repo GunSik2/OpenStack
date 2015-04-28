@@ -881,6 +881,8 @@ The network node runs the Networking plug-in and different agents (see the Figur
     interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
     dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
     use_namespaces = True
+    # This is for resolving mtu problem. You can set jumo frame instread of setting this.
+    # jumbo frame set: ifconfig eth0 mtu 9000
     dnsmasq_config_file = /etc/neutron/dnsmasq-neutron.conf
     
     vi /etc/neutron/dnsmasq-neutron.conf
