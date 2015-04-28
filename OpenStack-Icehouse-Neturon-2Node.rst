@@ -445,33 +445,32 @@ Install the Image Service (Glance)
 Install the compute Service (Nova)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Compute service components
+* Compute service components:
 
-      * API
-       - nova-api service. Accepts and responds to end user compute API calls. 
-       - nova-api-metadata service. Accepts metadata requests from instances. 
-      * Compute core
-       - nova-compute process. A worker daemon that creates and terminates virtual machine instances through hypervisor APIs.
-       - nova-scheduler process. Conceptually the simplest piece of code in Compute. 
-       - nova-conductor module. Mediates interactions between nova-compute and the database.
-      * Networking for VMs
-       - nova-network worker daemon. Similar to nova-compute, it accepts networking tasks from the queue and performs tasks to manipulate the network, such as setting up bridging interfaces or changing iptables rules.
-       - nova-dhcpbridge script. Tracks IP address leases and records them in the database by using the dnsmasq dhcp-script facility.
-      * Console interface
-       - nova-consoleauth daemon. Authorizes tokens for users that console proxies provide.
-       - nova-novncproxy daemon. Provides a proxy for accessing running instances through a VNC connection. 
-       - nova-xvpnvncproxy daemon. A proxy for accessing running instances through a VNC connection. 
-       - nova-cert daemon. Manages x509 certificates.
-      * Image management 
-       - nova-objectstore daemon. Provides an S3 interface for registering images with the Image Service.
-       - euca2ools client. A set of command-line interpreter commands for managing cloud resources.
-      * Command-line clients and other interfaces
-       - nova client. Enables users to submit commands as a tenant administrator or end user.
-       - nova-manage client. Enables cloud administrators to submit commands.
-      * Other components
-       - The queue. A central hub for passing messages between daemons. Usually implemented with RabbitMQ
-       - SQL database. Stores most build-time and runtime states for a cloud infrastructure.
-
+  * API:
+     - nova-api service. Accepts and responds to end user compute API calls. 
+     - nova-api-metadata service. Accepts metadata requests from instances. 
+  * Compute core:
+     - nova-compute process. A worker daemon that creates and terminates virtual machine instances through hypervisor APIs.
+     - nova-scheduler process. Conceptually the simplest piece of code in Compute. 
+     - nova-conductor module. Mediates interactions between nova-compute and the database.
+  * Networking for VMs:
+     - nova-network worker daemon. Similar to nova-compute, it accepts networking tasks from the queue and performs tasks to manipulate the network, such as setting up bridging interfaces or changing iptables rules.
+     - nova-dhcpbridge script. Tracks IP address leases and records them in the database by using the dnsmasq dhcp-script facility.
+  * Console interface
+     - nova-consoleauth daemon. Authorizes tokens for users that console proxies provide.
+     - nova-novncproxy daemon. Provides a proxy for accessing running instances through a VNC connection. 
+     - nova-xvpnvncproxy daemon. A proxy for accessing running instances through a VNC connection. 
+     - nova-cert daemon. Manages x509 certificates.
+  * Image management 
+     - nova-objectstore daemon. Provides an S3 interface for registering images with the Image Service.
+     - euca2ools client. A set of command-line interpreter commands for managing cloud resources.
+  * Command-line clients and other interfaces
+     - nova client. Enables users to submit commands as a tenant administrator or end user.
+     - nova-manage client. Enables cloud administrators to submit commands.
+  * Other components
+     - The queue. A central hub for passing messages between daemons. Usually implemented with RabbitMQ
+     - SQL database. Stores most build-time and runtime states for a cloud infrastructure.
 
 * Install nova packages for the controller node::
 
@@ -645,10 +644,8 @@ Install the network Service (Neutron)
     enable_security_group = True
 
 
-* Configure Compute to use Networking::
+* Reconfigure Compute to use Networking::
 
-    add in /etc/nova/nova.conf
-        
     vi /etc/nova/nova.conf
     
     [DEFAULT]
@@ -663,7 +660,6 @@ Install the network Service (Neutron)
     linuxnet_interface_driver=nova.network.linux_net.LinuxOVSInterfaceDriver
     firewall_driver=nova.virt.firewall.NoopFirewallDriver
     security_group_api=neutron
-
 
 * Restart the Compute services::
     
@@ -859,6 +855,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
     net.ipv4.conf.all.rp_filter=0
     net.ipv4.conf.default.rp_filter=0
 
+
 * Implement the changes::
 
     sysctl -p
@@ -884,6 +881,11 @@ The network node runs the Networking plug-in and different agents (see the Figur
     interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
     dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
     use_namespaces = True
+    dnsmasq_config_file = /etc/neutron/dnsmasq-neutron.conf
+    
+    vi /etc/neutron/dnsmasq-neutron.conf
+    dhcp-option-force=26,1454
+
 
 * Edit the /etc/neutron/metadata_agent.ini::
 
@@ -900,9 +902,6 @@ The network node runs the Networking plug-in and different agents (see the Figur
     metadata_proxy_shared_secret = helloOpenStack
 
 * Note: On the controller node::
-
-    edit the /etc/nova/nova.conf file
-    
     vi /etc/nova/nova.conf
 
     [DEFAULT]
@@ -910,6 +909,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
     neutron_metadata_proxy_shared_secret = helloOpenStack
     
     service nova-api restart
+
 
 * Edit the /etc/neutron/plugins/ml2/ml2_conf.ini::
 
@@ -980,7 +980,6 @@ The network node runs the Networking plug-in and different agents (see the Figur
 * Restart network::
 
     ifdown eth0 && ifup eth0
-
     ifdown br-ex && ifup br-ex
 
 
@@ -1002,7 +1001,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
 
 * Create a simple credential file::
 
-    vi creds
+    vi admin_creds
     #Paste the following:
     export OS_TENANT_NAME=admin
     export OS_USERNAME=admin
@@ -1011,7 +1010,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
 
 * Check Neutron agents::
 
-    source creds
+    source admin_creds
     neutron agent-list
 
 
@@ -1221,16 +1220,6 @@ Install Network
     linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
     firewall_driver = nova.virt.firewall.NoopFirewallDriver
     security_group_api = neutron
-
-* Edit /etc/nova/nova-compute.conf with the correct hypervisor type 
-  (set to qemu if using virtualbox for example, kvm is default) ::
-
-    vi /etc/nova/nova-compute.conf
-    
-    [DEFAULT]
-    compute_driver=libvirt.LibvirtDriver
-    [libvirt]
-    virt_type=kvm
 
 
 * Restart nova-compute services::
