@@ -3,14 +3,17 @@ OpenStack Icehouse 설치 가이드
 (2 개 N/W 인터페이스를 갖는 2개 노드 설치)
 ####
 
+
 Welcome to OpenStack Icehouse installation manual !
 
 This document is based on `the OpenStack Official Documentation <http://docs.openstack.org/icehouse/install-guide/install/apt/content/index.html>`_ for Icehouse. 
+
 
 :Version: 1.0
 :Authors: GunSik Choi 
 :License: Apache License Version 2.0
 :Keywords: OpenStack, Icehouse, Heat, Neutron, Nova, Ubuntu 14.04, Glance, Horizon
+
 
 
 .. contents::
