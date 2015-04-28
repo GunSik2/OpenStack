@@ -3,24 +3,12 @@ OpenStack Icehouse 설치 가이드
 (2 개 N/W 인터페이스를 갖는 2개 노드 설치)
 ####
 
-
-Welcome to OpenStack Icehouse installation manual !
-
-This document is based on `the OpenStack Official Documentation <http://docs.openstack.org/icehouse/install-guide/install/apt/content/index.html>`_ for Icehouse. 
-
-
-:Version: 1.0
-:Authors: GunSik Choi 
-:License: Apache License Version 2.0
-:Keywords: OpenStack, Icehouse, Heat, Neutron, Nova, Ubuntu 14.04, Glance, Horizon
-
-
-
 .. contents::
    
 
 Basic Architecture and Network Configuration
 ==========================================
+
 In this installation guide, we cover the step-by-step process of installing Openstack Icehouse on Ubuntu 14.04.  We consider a multi-node architecture with Openstack Networking (Neutron) that requires two node types: 
 
 + **Controller & Network Node** that runs management services (keystone, Horizon…) needed for OpenStack to function and that runs networking services and is responsible for virtual network provisioning  and for connecting virtual machines to external networks.
@@ -228,74 +216,84 @@ Install the supporting services (Package, NTP, MySQL and RabbitMQ)
 
 Install the Identity Service (Keystone)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-* Install keystone packages::
 
-    apt-get install -y keystone python-keystoneclient
+* Install Identity Service
 
-* Create a MySQL database for keystone::
-
-    mysql -u root -p
-
-    CREATE DATABASE keystone;
-    GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY 'KEYSTONE_DBPASS';
-    GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY 'KEYSTONE_DBPASS';
-
-    exit;
-
-* Remove Keystone SQLite database::
-
-    rm /var/lib/keystone/keystone.db
-
-* Edit /etc/keystone/keystone.conf::
-
-     vi /etc/keystone/keystone.conf
-  
-    [database]
-    # replace connection = sqlite:////var/lib/keystone/keystone.db by
-    connection = mysql://keystone:KEYSTONE_DBPASS@controller/keystone
-    
-    [DEFAULT]
-    admin_token=ADMIN
-    log_dir=/var/log/keystone
-  
-
-* Restart the identity service then synchronize the database::
-
-    service keystone restart
-    keystone-manage db_sync
-
-* Check synchronization::
-        
-    mysql -u keystone -p 
-    show databases;
-    show TABLES;
-
-
-* Define users, tenants, and roles::
-
-    export OS_SERVICE_TOKEN=ADMIN
-    export OS_SERVICE_ENDPOINT=http://controller:35357/v2.0
-    
-    #Create an administrative user
-    keystone user-create --name=admin --pass=admin_pass --email=admin@domain.com
-    keystone role-create --name=admin
-    keystone tenant-create --name=admin --description="Admin Tenant"
-    keystone user-role-add --user=admin --tenant=admin --role=admin
-    keystone user-role-add --user=admin --role=_member_ --tenant=admin
-    
-    #Create a normal user
-    keystone user-create --name=demo --pass=demo_pass --email=demo@domain.com
-    keystone tenant-create --name=demo --description="Demo Tenant"
-    keystone user-role-add --user=demo --role=_member_ --tenant=demo
-    
-    #Create a service tenant
-    keystone tenant-create --name=service --description="Service Tenant"
+   * Install keystone packages::
+   
+       apt-get install -y keystone python-keystoneclient
+   
+   * Create a MySQL database for keystone::
+   
+       mysql -u root -p
+   
+       CREATE DATABASE keystone;
+       GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY 'KEYSTONE_DBPASS';
+       GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' IDENTIFIED BY 'KEYSTONE_DBPASS';
+   
+       exit;
+   
+   * Remove Keystone SQLite database::
+   
+       rm /var/lib/keystone/keystone.db
+   
+   * Edit /etc/keystone/keystone.conf::
+   
+        vi /etc/keystone/keystone.conf
+     
+       [database]
+       # replace connection = sqlite:////var/lib/keystone/keystone.db by
+       connection = mysql://keystone:KEYSTONE_DBPASS@controller/keystone
+       
+       [DEFAULT]
+       admin_token=ADMIN_TOKEN 
+       log_dir=/var/log/keystone
+     
+   
+   * Restart the identity service then synchronize the database::
+   
+       service keystone restart
+       keystone-manage db_sync
+   
+   * Check synchronization::
+           
+       mysql -u keystone -p 
+       show databases;
+       show TABLES;
 
 
-* Define services and API endpoints::
-    
+* Define users, tenants, and roles
+
+   * Create an administrative user::
+   
+       export OS_SERVICE_TOKEN=ADMIN_TOKEN 
+       export OS_SERVICE_ENDPOINT=http://controller:35357/v2.0
+       
+       keystone user-create --name=admin --pass=admin_pass --email=admin@domain.com
+       keystone role-create --name=admin
+       keystone tenant-create --name=admin --description="Admin Tenant"
+       keystone user-role-add --user=admin --tenant=admin --role=admin
+       keystone user-role-add --user=admin --role=_member_ --tenant=admin
+   
+   * Create a normal user::
+   
+       keystone user-create --name=demo --pass=demo_pass --email=demo@domain.com
+       keystone tenant-create --name=demo --description="Demo Tenant"
+       keystone user-role-add --user=demo --role=_member_ --tenant=demo
+
+   * Create a service tenant::
+   
+       keystone tenant-create --name=service --description="Service Tenant"
+   
+
+* Define services and API endpoints
+   
+   * Create a service entry for the Identity Service::
+   
     keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
-    
+   
+   * Specify an API endpoint for the Identity Service::
+   
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
     --publicurl=http://192.168.100.21:5000/v2.0 \
@@ -303,9 +301,10 @@ Install the Identity Service (Keystone)
     --adminurl=http://controller:35357/v2.0
 
 
+* Verify the Identity Service installation
 
-* Create a simple credential file::
-        
+   * Create a simple credential file::
+
     vi creds
     #Paste the following: 
     export OS_TENANT_NAME=admin
@@ -320,26 +319,25 @@ Install the Identity Service (Keystone)
     export OS_TENANT_NAME=admin
     export OS_AUTH_URL=http://controller:35357/v2.0
 
-
-        
-* Test Keystone::
-    
-    #clear the values in the OS_SERVICE_TOKEN and OS_SERVICE_ENDPOINT environment variables        
+   * clear the values in the OS_SERVICE_TOKEN and OS_SERVICE_ENDPOINT environment variables::
+   
      unset OS_SERVICE_TOKEN OS_SERVICE_ENDPOINT
 
-    #Request a authentication token     
+   * Request a authentication token::
+   
     keystone --os-username=admin --os-password=admin_pass --os-auth-url=http://controller:35357/v2.0 token-get
 
-    # Load credential admin file
+   * Load credential admin file::
+   
     source admin_creds
-    
     keystone token-get
-    
-    # Load credential file:
+
+   * Load credential file::
+   
     source creds
-    
     keystone user-list
     keystone user-role-list --user admin --tenant admin
+
 
 Install the image Service (Glance)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
