@@ -1,5 +1,6 @@
 ####
-OpenStack Icehouse 설치 가이드 - 2 개 N/W 인터페이스를 갖는 2개 노드
+OpenStack Icehouse 설치 가이드 
+(2 개 N/W 인터페이스를 갖는 2개 노드 설치)
 ####
 
 Welcome to OpenStack Icehouse installation manual !
@@ -11,12 +12,6 @@ This document is based on `the OpenStack Official Documentation <http://docs.ope
 :License: Apache License Version 2.0
 :Keywords: OpenStack, Icehouse, Heat, Neutron, Nova, Ubuntu 14.04, Glance, Horizon
 
-===============================
-
-**Authors:**
-Copyright (C) `GunSik Choi <https://www.linkedin.com/in/cgshome>`_
-
-================================
 
 .. contents::
    
@@ -43,6 +38,7 @@ For OpenStack Multi-Node setup you need to create two networks:
 In the next subsections, we describe in details how to set up, configure and test the network architecture. We want to make sure everything is ok before install ;)
 
 So, let’s prepare the nodes for OpenStack installation!
+
 
 Configure Controller node
 -------------------------
@@ -91,10 +87,8 @@ The controller node has two Network Interfaces: eth0 is internal (used for conne
 * Restart network::
 
     ifdown eth0 && ifup eth0
-    
     ifdown eth1 && ifup eth1
-        
-    
+
 
 Configure Compute node
 ----------------------
@@ -176,19 +170,19 @@ Now everything is ok :) So let's go ahead and install it !
 Controller Node
 ---------------
 
-Let's start with the controller ! the cornerstone !
-
-Here we've installed the basic services (keystone, glance, nova,neutron and horizon) and also the supporting services 
+Here we will install the basic services (keystone, glance, nova,neutron and horizon) and also the supporting services 
 such as MySql database, message broker (RabbitMQ), and NTP. 
 
-An additional install guide for optional services (Heat, Cinder...) will be provided in the near future ;) 
-
-
-Install the supporting services (MySQL and RabbitMQ)
+Install the supporting services (Package, NTP, MySQL and RabbitMQ)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+* Install the Ubuntu Cloud Archive for Icehouse::
+
+    apt-get install python-software-properties
+    add-apt-repository cloud-archive:icehouse
+
 * Update and Upgrade your System::
-    
+   
     apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade
 
 * Install NTP service (Network Time Protocol)::
@@ -198,7 +192,6 @@ Install the supporting services (MySQL and RabbitMQ)
 * Install MySQL::
 
     apt-get install -y mysql-server python-mysqldb
-
 
 * Set the bind-address key to the management IP address of the controller node::
 
@@ -226,7 +219,8 @@ Install the supporting services (MySQL and RabbitMQ)
 
 * Install RabbitMQ (Message Queue) ::
 
-   apt-get install -y rabbitmq-server
+    apt-get install -y rabbitmq-server
+    rabbitmqctl change_password guest RABBIT_PASS
 
 
 Install the Identity Service (Keystone)
@@ -999,8 +993,13 @@ It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and laye
 Install Compute
 ^^^^^^^^^^^^^^^^
 
-* Update and Upgrade your System::
+* Install the Ubuntu Cloud Archive for Icehouse::
 
+    apt-get install python-software-properties
+    add-apt-repository cloud-archive:icehouse
+
+* Update and Upgrade your System::
+ 
     apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade
 
 
@@ -1016,6 +1015,10 @@ Install Compute
 
     service ntp restart
 
+* Install MySQL Python library::
+
+    apt-get install python-mysqldb
+   
 * Check that your hardware supports virtualization::
 
     apt-get install -y cpu-checker
@@ -1199,47 +1202,12 @@ Install Network
     nova-manage service list
     
 
-That's it !! ;) Just try it!
 
-If you want to create your first instance with Neutron, follow the instructions in our VM creation guide available
-here `Create-First-Instance-with-Neutron <https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/blob/master/Create-your-first-instance-with-Neutron.rst>`_.   
-
-
-Your contributions are welcome, as are questions and requests for help :)
-
-Hope this manual will be helpful and simple!
-
-
-A special wink at all the interesting works on the previous standard installation of OpenStack and variotion of installation ;) especially: 
-
-https://github.com/ChaimaGhribi/OpenStack-Icehouse-Installation/
-
-https://fosskb.wordpress.com/2014/06/10/managing-openstack-internaldataexternal-network-in-one-interface/
-
-http://naleejang.tistory.com/131
-
-
-License
-=======
-Institut Open PaaS  
-
-Copyright (C) 2014  Authors
-
-Original Authors - GunSik Choi
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except 
-
-in compliance with the License. You may obtain a copy of the License at::
-
-    http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
+Reference
+=========
+The content is the summarization of OpenStack Installation Guide for Ubuntu 14.04 (LTS) and the applicaiton case to two nodes.
+- http://docs.openstack.org/icehouse/install-guide/install/apt/content/
+- https://fosskb.wordpress.com/2014/06/10/managing-openstack-internaldataexternal-network-in-one-interface/
 
 Contacts
 ========
