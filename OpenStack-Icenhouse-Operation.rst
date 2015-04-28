@@ -51,18 +51,14 @@ the instance will connect.
     #Create the internal network:
     neutron net-create demo-net
     
-    #Create the subnet for the internal network:
+    #Create the subnet for the tenant network:
     neutron subnet-create demo-net --name demo-subnet \
     --dns-nameserver 8.8.8.8 --gateway 172.16.1.1 172.16.1.0/24
 
-* Create a router on the internal network and attach it to the external network::
-
-    source demo_creds
-    
-    #Create the router:
+    #Create a router:
     neutron router-create demo-router
     
-    #Attach the router to the internal subnet:
+    #Attach the router to the tenant subnet:
     neutron router-interface-add demo-router demo-subnet
     
     #Attach the router to the external network by setting it as the gateway:
