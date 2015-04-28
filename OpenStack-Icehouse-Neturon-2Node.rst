@@ -1,10 +1,9 @@
 ####
-OpenStack Icehouse 설치 가이드 
-(2 개 N/W 인터페이스를 갖는 2개 노드 설치)
+OpenStack Icehouse 설치 가이드(2 개 N/W 인터페이스를 갖는 2개 노드 설치)
 ####
 
 .. contents::
-   
+  
 
 Basic Architecture and Network Configuration
 ==========================================
@@ -305,18 +304,18 @@ Install the Identity Service (Keystone)
 
    * Create a simple credential file::
 
-    vi creds
+    vi admin_creds
     #Paste the following: 
     export OS_TENANT_NAME=admin
     export OS_USERNAME=admin
     export OS_PASSWORD=admin_pass
     export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
 
-    vi admin_creds
+    vi demo_creds
     #Paste the following: 
-    export OS_USERNAME=admin
-    export OS_PASSWORD=admin_pass
-    export OS_TENANT_NAME=admin
+    export OS_USERNAME=demo
+    export OS_PASSWORD=demo_pass
+    export OS_TENANT_NAME=demo
     export OS_AUTH_URL=http://controller:35357/v2.0
 
    * clear the values in the OS_SERVICE_TOKEN and OS_SERVICE_ENDPOINT environment variables::
@@ -334,115 +333,147 @@ Install the Identity Service (Keystone)
 
    * Load credential file::
    
-    source creds
+    source admin_creds
     keystone user-list
     keystone user-role-list --user admin --tenant admin
 
 
-Install the image Service (Glance)
+Install the Image Service (Glance)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Image Service Components::
+    - glance-api: Accepts Image API calls for image discovery, retrieval, and storage.
+    - glance-registry: Stores, processes, and retrieves metadata about images. Metadata includes items such as size and type
+    - Database: Stores image metadata. You can choose your database depending on your preference.
+    - Storage repository (for image files): The Image Service supports a variety of repositories including normal file systems, Object Storage, RADOS block devices, HTTP, and Amazon S3
 
-* Install Glance packages::
+* Install the Image Service
 
-    apt-get install -y glance python-glanceclient
-    
+   * Install Glance packages::
+   
+       apt-get install -y glance python-glanceclient
+   
+   * Create a MySQL database for Glance::
+   
+       mysql -u root -p
+       CREATE DATABASE glance;
+       GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY 'GLANCE_DBPASS';
+       GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY 'GLANCE_DBPASS';
+       exit;
+   
+   * Configure service user and role::
+   
+       keystone user-create --name=glance --pass=service_pass --email=glance@domain.com
+       keystone user-role-add --user=glance --tenant=service --role=admin
+   
+   * Register the service and create the endpoint::
+   
+       keystone service-create --name=glance --type=image --description="OpenStack Image Service"
+       keystone endpoint-create \
+       --service-id=$(keystone service-list | awk '/ image / {print $2}') \
+       --publicurl=http://192.168.100.21:9292 \
+       --internalurl=http://controller:9292 \
+       --adminurl=http://controller:9292
+   
+   * Update /etc/glance/glance-api.conf::
+   
+       vi /etc/glance/glance-api.conf
+       
+       [database]
+       # replace sqlite_db = /var/lib/glance/glance.sqlite with
+       connection = mysql://glance:GLANCE_DBPASS@controller/glance
+       
+       [keystone_authtoken]
+       auth_uri = http://controller:5000
+       auth_host = controller
+       auth_port = 35357
+       auth_protocol = http
+       admin_tenant_name = service
+       admin_user = glance
+       admin_password = service_pass
+       
+       [paste_deploy]
+       flavor = keystone
+   
+   
+   * Update /etc/glance/glance-registry.conf::
+       
+       vi /etc/glance/glance-registry.conf
+       
+       [database]
+       # replace sqlite_db = /var/lib/glance/glance.sqlite with:
+       connection = mysql://glance:GLANCE_DBPASS@controller/glance
+       
+       [keystone_authtoken]
+       auth_uri = http://controller:5000
+       auth_host = controller
+       auth_port = 35357
+       auth_protocol = http
+       admin_tenant_name = service
+       admin_user = glance
+       admin_password = service_pass
+       
+       [paste_deploy]
+       flavor = keystone
+   
+   * Remove sqlite database::
+   
+       rm /var/lib/glance/glance.sqlite
+   
+   * Create the database tables for the glance database::
+   
+       glance-manage db_sync
 
-* Create a MySQL database for Glance::
+   * Restart the glance-api and glance-registry services::
+   
+       service glance-registry restart
+       service glance-api restart; 
+   
+* Verify the Image Service installation
 
-    mysql -u root -p
+   * Test Glance, upload the cirros cloud image::
 
-    CREATE DATABASE glance;
-    GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' IDENTIFIED BY 'GLANCE_DBPASS';
-    GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY 'GLANCE_DBPASS';
-    
-    exit;
+       source admin_creds
+       glance image-create --name="cirros-0.3.2-x86_64" --disk-format=qcow2 \
+       --container-format=bare --is-public=true \
+       --copy-from http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
+ 
+   * List Images::
 
-* Configure service user and role::
-
-    keystone user-create --name=glance --pass=service_pass --email=glance@domain.com
-    keystone user-role-add --user=glance --tenant=service --role=admin
-
-* Register the service and create the endpoint::
-
-    keystone service-create --name=glance --type=image --description="OpenStack Image Service"
-    keystone endpoint-create \
-    --service-id=$(keystone service-list | awk '/ image / {print $2}') \
-    --publicurl=http://192.168.100.21:9292 \
-    --internalurl=http://controller:9292 \
-    --adminurl=http://controller:9292
-
-* Update /etc/glance/glance-api.conf::
-
-    vi /etc/glance/glance-api.conf
-    
-    [database]
-    # replace sqlite_db = /var/lib/glance/glance.sqlite with
-    connection = mysql://glance:GLANCE_DBPASS@controller/glance
-    
-    [DEFAULT]
-    rpc_backend = rabbit
-    rabbit_host = controller
-    
-    [keystone_authtoken]
-    auth_uri = http://controller:5000
-    auth_host = controller
-    auth_port = 35357
-    auth_protocol = http
-    admin_tenant_name = service
-    admin_user = glance
-    admin_password = service_pass
-    
-    [paste_deploy]
-    flavor = keystone
-
-
-* Update /etc/glance/glance-registry.conf::
-    
-    vi /etc/glance/glance-registry.conf
-    
-    [database]
-    # replace sqlite_db = /var/lib/glance/glance.sqlite with:
-    connection = mysql://glance:GLANCE_DBPASS@controller/glance
-    
-    [keystone_authtoken]
-    auth_uri = http://controller:5000
-    auth_host = controller
-    auth_port = 35357
-    auth_protocol = http
-    admin_tenant_name = service
-    admin_user = glance
-    admin_password = service_pass
-    
-    [paste_deploy]
-    flavor = keystone
-
-
-* Restart the glance-api and glance-registry services::
-
-    service glance-api restart; service glance-registry restart
-
-
-* Synchronize the glance database::
-
-    glance-manage db_sync
-
-* Test Glance, upload the cirros cloud image::
-
-    source creds
-    glance image-create --name "cirros-0.3.2-x86_64" --is-public true \
-    --container-format bare --disk-format qcow2 \
-    --location http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
-
-* List Images::
-
-    glance image-list
-
+       glance image-list
 
 
 Install the compute Service (Nova)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Install nova packages::
+* Compute service components
+
+      * API
+       - nova-api service. Accepts and responds to end user compute API calls. 
+       - nova-api-metadata service. Accepts metadata requests from instances. 
+      * Compute core
+       - nova-compute process. A worker daemon that creates and terminates virtual machine instances through hypervisor APIs.
+       - nova-scheduler process. Conceptually the simplest piece of code in Compute. 
+       - nova-conductor module. Mediates interactions between nova-compute and the database.
+      * Networking for VMs
+       - nova-network worker daemon. Similar to nova-compute, it accepts networking tasks from the queue and performs tasks to manipulate the network, such as setting up bridging interfaces or changing iptables rules.
+       - nova-dhcpbridge script. Tracks IP address leases and records them in the database by using the dnsmasq dhcp-script facility.
+      * Console interface
+       - nova-consoleauth daemon. Authorizes tokens for users that console proxies provide.
+       - nova-novncproxy daemon. Provides a proxy for accessing running instances through a VNC connection. 
+       - nova-xvpnvncproxy daemon. A proxy for accessing running instances through a VNC connection. 
+       - nova-cert daemon. Manages x509 certificates.
+      * Image management 
+       - nova-objectstore daemon. Provides an S3 interface for registering images with the Image Service.
+       - euca2ools client. A set of command-line interpreter commands for managing cloud resources.
+      * Command-line clients and other interfaces
+       - nova client. Enables users to submit commands as a tenant administrator or end user.
+       - nova-manage client. Enables cloud administrators to submit commands.
+      * Other components
+       - The queue. A central hub for passing messages between daemons. Usually implemented with RabbitMQ
+       - SQL database. Stores most build-time and runtime states for a cloud infrastructure.
+
+
+* Install nova packages for the controller node::
 
     apt-get install -y nova-api nova-cert nova-conductor nova-consoleauth \
     nova-novncproxy nova-scheduler python-novaclient
@@ -518,13 +549,14 @@ Install the compute Service (Nova)
 
 
 * Check Nova is running. The :-) icons indicate that everything is ok !::
-    
+   
     nova-manage service list
 
 * To verify your configuration, list available images::
 
-    source creds
+    source admin_creds
     nova image-list
+ 
    
 Install the network Service (Neutron)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -988,104 +1020,115 @@ Compute Node
 ------------
 
 Finally, let's install the services on the compute node!
-
 It uses KVM as hypervisor and runs nova-compute, the Networking plug-in and layer 2 agent.  
 
 Install Compute
 ^^^^^^^^^^^^^^^^
 
-* Install the Ubuntu Cloud Archive for Icehouse::
+1) Install basic services
 
-    apt-get install python-software-properties
-    add-apt-repository cloud-archive:icehouse
-
-* Update and Upgrade your System::
- 
-    apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade
-
-
-* Install ntp service::
-    
-    apt-get install -y ntp
-
-* Set the compute node to follow up your conroller node::
-
-   sed -i 's/server ntp.ubuntu.com/server controller/g' /etc/ntp.conf
-
-* Restart NTP service::
-
-    service ntp restart
-
-* Install MySQL Python library::
-
-    apt-get install python-mysqldb
+   * Install the Ubuntu Cloud Archive for Icehouse::
    
-* Check that your hardware supports virtualization::
-
-    apt-get install -y cpu-checker
-    kvm-ok
-
-* Install and configure kvm::
-
-    apt-get install -y kvm libvirt-bin pm-utils
-
-* Install the Compute packages::
-
-    apt-get install -y nova-compute-kvm python-guestfs
-
-* Make the current kernel readable::
-
-    dpkg-statoverride  --update --add root root 0644 /boot/vmlinuz-$(uname -r)
-
-* Enable this override for all future kernel updates, create the file /etc/kernel/postinst.d/statoverride containing::
-
-    vi /etc/kernel/postinst.d/statoverride
-    #!/bin/sh
-    version="$1"
-    # passing the kernel version is required
-    [ -z "${version}" ] && exit 0
-    dpkg-statoverride --update --add root root 0644 /boot/vmlinuz-${version}
-
-* Make the file executable::
-
-    chmod +x /etc/kernel/postinst.d/statoverride
-
-
-* Modify the /etc/nova/nova.conf like this::
-
-    vi /etc/nova/nova.conf
-    [DEFAULT]
-    auth_strategy = keystone
-    rpc_backend = rabbit
-    rabbit_host = controller
-    my_ip = 10.0.1.31
-    vnc_enabled = True
-    vncserver_listen = 0.0.0.0
-    vncserver_proxyclient_address = 10.0.1.31
-    novncproxy_base_url = http://192.168.100.21:6080/vnc_auto.html
-    glance_host = controller
-    vif_plugging_is_fatal=false
-    vif_plugging_timeout=0
+       apt-get install python-software-properties
+       add-apt-repository cloud-archive:icehouse
+   
+   * Update and Upgrade your System::
     
-    [database]
-    connection = mysql://nova:NOVA_DBPASS@controller/nova
-    
-    [keystone_authtoken]
-    auth_uri = http://controller:5000
-    auth_host = controller
-    auth_port = 35357
-    auth_protocol = http
-    admin_tenant_name = service
-    admin_user = nova
-    admin_password = service_pass
+       apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade
+   
+   
+   * Install ntp service::
+       
+       apt-get install -y ntp
+   
+   * Set the compute node to follow up your conroller node::
+   
+      sed -i 's/server ntp.ubuntu.com/server controller/g' /etc/ntp.conf
+   
+   * Restart NTP service::
+   
+       service ntp restart
+   
+   * Install MySQL Python library::
+   
+       apt-get install python-mysqldb
+      
+   * Check that your hardware supports virtualization::
+   
+       apt-get install -y cpu-checker
+       kvm-ok
 
-* Delete /var/lib/nova/nova.sqlite file::
-    
-    rm /var/lib/nova/nova.sqlite
+   * Install and configure kvm::
+   
+       apt-get install -y kvm libvirt-bin pm-utils
 
-* Restart nova-compute services::
+2) Install Compute
 
-    service nova-compute restart
+   * Install the Compute packages::
+   
+       apt-get install -y nova-compute-kvm python-guestfs
+   
+   * Make the current kernel readable::
+   
+       dpkg-statoverride  --update --add root root 0644 /boot/vmlinuz-$(uname -r)
+   
+   * Enable this override for all future kernel updates, create the file /etc/kernel/postinst.d/statoverride containing::
+   
+       vi /etc/kernel/postinst.d/statoverride
+       #!/bin/sh
+       version="$1"
+       # passing the kernel version is required
+       [ -z "${version}" ] && exit 0
+       dpkg-statoverride --update --add root root 0644 /boot/vmlinuz-${version}
+   
+   * Make the file executable::
+   
+       chmod +x /etc/kernel/postinst.d/statoverride
+   
+   
+   * Modify the /etc/nova/nova.conf like this::
+   
+       vi /etc/nova/nova.conf
+       [DEFAULT]
+       auth_strategy = keystone
+       vif_plugging_is_fatal=false
+       vif_plugging_timeout=0
+   
+       rpc_backend = rabbit
+       rabbit_host = controller
+       glance_host = controller
+   
+       my_ip = 10.0.1.31
+       vnc_enabled = True
+       vncserver_listen = 0.0.0.0
+       vncserver_proxyclient_address = 10.0.1.31
+       novncproxy_base_url = http://192.168.100.21:6080/vnc_auto.html
+       
+       [database]
+       connection = mysql://nova:NOVA_DBPASS@controller/nova
+       
+       [keystone_authtoken]
+       auth_uri = http://controller:5000
+       auth_host = controller
+       auth_port = 35357
+       auth_protocol = http
+       admin_tenant_name = service
+       admin_user = nova
+       admin_password = service_pass
+       
+   * Notice that if this command (egrep -c '(vmx|svm)' /proc/cpuinfo) returns a value of zero, 
+     your system does not support hardware acceleration and you must configure libvirt to use QEMU instead of KVM in nova.conf.:: 
+       [libvirt]
+       ...
+       virt_type = qemu
+   
+   * Delete /var/lib/nova/nova.sqlite file::
+       
+       rm /var/lib/nova/nova.sqlite
+   
+   * Restart nova-compute services::
+   
+       service nova-compute restart
 
 
 Install Network
