@@ -691,7 +691,8 @@ Install the dashboard Service (Horizon)
 
 * Reload Apache and memcached::
 
-    service apache2 restart; service memcached restart
+    service apache2 restart 
+    service memcached restart
 
 * Note::
 
