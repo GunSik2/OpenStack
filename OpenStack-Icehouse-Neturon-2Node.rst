@@ -1174,7 +1174,9 @@ Install Network
     admin_tenant_name = service
     admin_user = neutron
     admin_password = service_pass
-
+    
+   [database]
+   connection = mysql://neutron:NEUTRON_DBPASS@controller/neutron
 
 
 * Configure the Modular Layer 2 (ML2) plug-in::
