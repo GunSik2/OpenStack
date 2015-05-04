@@ -31,6 +31,8 @@ Create initial network (Neutron)
 After creating the image, let's create the virtual network infrastructure to which 
 the instance will connect.
 
+.. image:: https://github.com/GunSik2/OpenStack/blob/master/images/arch2.jpg
+
 * Create an external network::
 
     source admin_creds
