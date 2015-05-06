@@ -141,16 +141,4 @@ Use Horizon Dashboard
    (세부 정보)탬 - (인스턴스 이름:instance1, Flavor: m1.tiny, 인스턴스 부팅 소스: 이미지로 부팅, 이미지 이름: Ubuntu_14.04_LTS)입력
    (접근 & 시큐리티)탭 - (키 패어: key-test, 시큐리티 그룹: defualt)확인
    (네트워킹) 
-   
-
-
-Set floating ip to an instace 
-==============================
-
-
-Create volume stoarge
-==============================
-
-
-Create volume stoarge
-==============================
+  
