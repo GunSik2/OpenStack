@@ -1241,6 +1241,20 @@ Install Network
     
 
 
+Trouble Shooting on Operation 
+------------
+* Case1: 'Too many connections'
+    Problem
+    - cat /var/log/nova/nova-api.log
+    ERROR nova.api.openstack [req-22e47296-ae37-4a66-9d6f-953c21efb8c2 b5b2b5c7c2a740599857cf31cc3b43e3 27d4039052fd42b09ee477e0b40fe713] Caught error: (OperationalError) (1040, 'Too many connections') None None
+
+    Solution
+    - /etc/mysql/my.cnf
+      max_connections        = 500
+    - service mysql restart
+    
+    
+    
 Reference
 =========
 The content is the summarization of OpenStack Installation Guide for Ubuntu 14.04 (LTS) and the applicaiton case to two nodes.
