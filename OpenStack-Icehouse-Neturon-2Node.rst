@@ -947,6 +947,8 @@ Install the block stroage Service (Cinder)
        rpc_backend = cinder.openstack.common.rpc.impl_kombu
        rabbit_host = controller
        rabbit_port = 5672
+       rabbit_userid = guest
+       rabbit_password = RABBIT_PASS
        …
        [keystone_authtoken]
        auth_uri = http://controller:5000
@@ -996,6 +998,8 @@ Install the block stroage Service (Cinder)
        rpc_backend = rabbit
        rabbit_host = controller
        rabbit_port = 5672
+       rabbit_userid = guest
+       rabbit_password = RABBIT_PASS
        ...
        my_ip = 10.0.1.21         
        glance_host = controller
