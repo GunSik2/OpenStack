@@ -514,6 +514,7 @@ Install the compute Service (Nova)
     [DEFAULT]
     rpc_backend = rabbit
     rabbit_host = controller
+    rabbit_password = RABBIT_PASS
     my_ip = 10.0.1.21
     vncserver_listen = 10.0.1.21
     vncserver_proxyclient_address = 10.0.1.21
@@ -608,6 +609,7 @@ Install the network Service (Neutron - Controller)
     auth_strategy = keystone
     rpc_backend = neutron.openstack.common.rpc.impl_kombu
     rabbit_host = controller
+    rabbit_password = RABBIT_PASS
     
     notify_nova_on_port_status_changes = True
     notify_nova_on_port_data_changes = True
@@ -1103,6 +1105,7 @@ Install Compute
    
        rpc_backend = rabbit
        rabbit_host = controller
+       rabbit_password = RABBIT_PASS
        glance_host = controller
    
        my_ip = 10.0.1.31
