@@ -558,7 +558,7 @@ Install the compute Service (Nova)
     nova image-list
  
    
-Install the network Service (Neutron)
+Install the network Service (Neutron - Controller)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Install the Neutron server and the OpenVSwitch packages::
@@ -671,6 +671,185 @@ Install the network Service (Neutron)
 * Restart the Networking service::
 
     service neutron-server restart
+
+
+Install the network Service (Neutron - Network)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The network node runs the Networking plug-in and different agents (see the Figure below).
+
+
+* Install other services::
+
+    apt-get install -y vlan bridge-utils
+
+* Edit /etc/sysctl.conf to contain the following::
+
+    vi /etc/sysctl.conf
+    net.ipv4.ip_forward=1
+    net.ipv4.conf.all.rp_filter=0
+    net.ipv4.conf.default.rp_filter=0
+
+
+* Implement the changes::
+
+    sysctl -p
+
+* Install the Networking components::
+
+    apt-get install -y neutron-plugin-ml2 neutron-plugin-openvswitch-agent dnsmasq neutron-l3-agent neutron-dhcp-agent
+
+
+* Edit the /etc/neutron/l3_agent.ini::
+
+    vi /etc/neutron/l3_agent.ini
+    
+    [DEFAULT]
+    interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
+    use_namespaces = True
+
+* Edit the /etc/neutron/dhcp_agent.ini::
+
+    vi /etc/neutron/dhcp_agent.ini
+    
+    [DEFAULT]
+    interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
+    dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
+    use_namespaces = True
+    # This is for resolving mtu problem. You can set jumo frame instread of setting this.
+    # jumbo frame set: ifconfig eth0 mtu 9000
+    dnsmasq_config_file = /etc/neutron/dnsmasq-neutron.conf
+    
+    vi /etc/neutron/dnsmasq-neutron.conf
+    dhcp-option-force=26,1454
+
+
+* Edit the /etc/neutron/metadata_agent.ini::
+
+    vi /etc/neutron/metadata_agent.ini
+    
+    [DEFAULT]
+    auth_url = http://controller:5000/v2.0
+    auth_region = regionOne
+    
+    admin_tenant_name = service
+    admin_user = neutron
+    admin_password = service_pass
+    nova_metadata_ip = controller
+    metadata_proxy_shared_secret = helloOpenStack
+
+* Note: On the controller node::
+
+    vi /etc/nova/nova.conf
+   
+    [DEFAULT]
+    service_neutron_metadata_proxy = true
+    neutron_metadata_proxy_shared_secret = helloOpenStack
+    
+    service nova-api restart
+
+
+* Edit the /etc/neutron/plugins/ml2/ml2_conf.ini::
+
+    vi /etc/neutron/plugins/ml2/ml2_conf.ini
+    
+    [ml2]
+    type_drivers = gre
+    tenant_network_types = gre
+    mechanism_drivers = openvswitch
+    
+    [ml2_type_gre]
+    tunnel_id_ranges = 1:1000
+    
+    [ovs]
+    local_ip = 10.0.1.21
+    tunnel_type = gre
+    enable_tunneling = True
+    
+    [securitygroup]
+    firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    enable_security_group = True
+
+* Restart openVSwitch::
+
+    service openvswitch-switch restart
+
+* Create the bridges::
+
+    #br-int will be used for VM integration
+    ovs-vsctl add-br br-int
+
+    #br-ex is used to make to VM accessible from the internet
+    ovs-vsctl add-br br-ex
+
+
+* Add the eth0 to the br-ex::
+
+    #Internet connectivity will be lost after this step but this won't affect OpenStack's work
+    ovs-vsctl add-port br-ex eth0
+
+* Edit /etc/network/interfaces::
+
+    vi /etc/network/interfaces
+    #  comment out the following part and add the next part.
+    # The management & public network interface
+    #  auto eth0
+    #  iface eth0 inet static
+    #  address 192.168.100.21
+    #  netmask 255.255.255.0
+    #  gateway 192.168.100.1
+    #  dns-nameservers 8.8.8.8
+    
+    # The public network interface
+    auto eth0
+    iface eth0 inet manual
+    up ifconfig $IFACE 0.0.0.0 up
+    up ip link set $IFACE promisc on
+    down ip link set $IFACE promisc off
+    down ifconfig $IFACE down
+  
+    auto br-ex
+    iface br-ex inet static
+    address 192.168.100.21
+    netmask 255.255.255.0
+    gateway 192.168.100.1
+    dns-nameservers 8.8.8.8
+
+* Restart network::
+
+    ifdown eth0 && ifup eth0
+    ifdown br-ex && ifup br-ex
+
+
+* Restart all neutron services::
+
+    service neutron-plugin-openvswitch-agent restart
+    service neutron-dhcp-agent restart
+    service neutron-l3-agent restart
+    service neutron-metadata-agent restart
+    service dnsmasq restart
+
+* Check status::
+
+    service neutron-plugin-openvswitch-agent status
+    service neutron-dhcp-agent status
+    service neutron-l3-agent status
+    service neutron-metadata-agent status
+    service dnsmasq status
+
+* Create a simple credential file::
+
+    vi admin_creds
+    #Paste the following:
+    export OS_TENANT_NAME=admin
+    export OS_USERNAME=admin
+    export OS_PASSWORD=admin_pass
+    export OS_AUTH_URL="http://pcontroller:5000/v2.0/"
+
+* Check Neutron agents::
+
+    source admin_creds
+    neutron agent-list
 
 
 Install the dashboard Service (Horizon)
@@ -838,185 +1017,6 @@ Install the block stroage Service (Cinder)
        cinder list
 
 
-Install Network moduels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Now, let's move to second step!
-
-The network node runs the Networking plug-in and different agents (see the Figure below).
-
-
-* Install other services::
-
-    apt-get install -y vlan bridge-utils
-
-* Edit /etc/sysctl.conf to contain the following::
-
-    vi /etc/sysctl.conf
-    net.ipv4.ip_forward=1
-    net.ipv4.conf.all.rp_filter=0
-    net.ipv4.conf.default.rp_filter=0
-
-
-* Implement the changes::
-
-    sysctl -p
-
-* Install the Networking components::
-
-    apt-get install -y neutron-plugin-ml2 neutron-plugin-openvswitch-agent dnsmasq neutron-l3-agent neutron-dhcp-agent
-
-
-* Edit the /etc/neutron/l3_agent.ini::
-
-    vi /etc/neutron/l3_agent.ini
-    
-    [DEFAULT]
-    interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
-    use_namespaces = True
-
-* Edit the /etc/neutron/dhcp_agent.ini::
-
-    vi /etc/neutron/dhcp_agent.ini
-    
-    [DEFAULT]
-    interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
-    dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
-    use_namespaces = True
-    # This is for resolving mtu problem. You can set jumo frame instread of setting this.
-    # jumbo frame set: ifconfig eth0 mtu 9000
-    dnsmasq_config_file = /etc/neutron/dnsmasq-neutron.conf
-    
-    vi /etc/neutron/dnsmasq-neutron.conf
-    dhcp-option-force=26,1454
-
-
-* Edit the /etc/neutron/metadata_agent.ini::
-
-    vi /etc/neutron/metadata_agent.ini
-    
-    [DEFAULT]
-    auth_url = http://controller:5000/v2.0
-    auth_region = regionOne
-    
-    admin_tenant_name = service
-    admin_user = neutron
-    admin_password = service_pass
-    nova_metadata_ip = controller
-    metadata_proxy_shared_secret = helloOpenStack
-
-* Note: On the controller node::
-    vi /etc/nova/nova.conf
-
-    [DEFAULT]
-    service_neutron_metadata_proxy = true
-    neutron_metadata_proxy_shared_secret = helloOpenStack
-    
-    service nova-api restart
-
-
-* Edit the /etc/neutron/plugins/ml2/ml2_conf.ini::
-
-    vi /etc/neutron/plugins/ml2/ml2_conf.ini
-    
-    [ml2]
-    type_drivers = gre
-    tenant_network_types = gre
-    mechanism_drivers = openvswitch
-    
-    [ml2_type_gre]
-    tunnel_id_ranges = 1:1000
-    
-    [ovs]
-    local_ip = 10.0.1.21
-    tunnel_type = gre
-    enable_tunneling = True
-    
-    [securitygroup]
-    firewall_driver = neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
-    enable_security_group = True
-
-* Restart openVSwitch::
-
-    service openvswitch-switch restart
-
-* Create the bridges::
-
-    #br-int will be used for VM integration
-    ovs-vsctl add-br br-int
-
-    #br-ex is used to make to VM accessible from the internet
-    ovs-vsctl add-br br-ex
-
-
-* Add the eth0 to the br-ex::
-
-    #Internet connectivity will be lost after this step but this won't affect OpenStack's work
-    ovs-vsctl add-port br-ex eth0
-
-* Edit /etc/network/interfaces::
-
-    vi /etc/network/interfaces
-    #  comment out the following part and add the next part.
-    # The management & public network interface
-    #  auto eth0
-    #  iface eth0 inet static
-    #  address 192.168.100.21
-    #  netmask 255.255.255.0
-    #  gateway 192.168.100.1
-    #  dns-nameservers 8.8.8.8
-    
-    # The public network interface
-    auto eth0
-    iface eth0 inet manual
-    up ifconfig $IFACE 0.0.0.0 up
-    up ip link set $IFACE promisc on
-    down ip link set $IFACE promisc off
-    down ifconfig $IFACE down
-  
-    auto br-ex
-    iface br-ex inet static
-    address 192.168.100.21
-    netmask 255.255.255.0
-    gateway 192.168.100.1
-    dns-nameservers 8.8.8.8
-
-* Restart network::
-
-    ifdown eth0 && ifup eth0
-    ifdown br-ex && ifup br-ex
-
-
-* Restart all neutron services::
-
-    service neutron-plugin-openvswitch-agent restart
-    service neutron-dhcp-agent restart
-    service neutron-l3-agent restart
-    service neutron-metadata-agent restart
-    service dnsmasq restart
-
-* Check status::
-
-    service neutron-plugin-openvswitch-agent status
-    service neutron-dhcp-agent status
-    service neutron-l3-agent status
-    service neutron-metadata-agent status
-    service dnsmasq status
-
-* Create a simple credential file::
-
-    vi admin_creds
-    #Paste the following:
-    export OS_TENANT_NAME=admin
-    export OS_USERNAME=admin
-    export OS_PASSWORD=admin_pass
-    export OS_AUTH_URL="http://pcontroller:5000/v2.0/"
-
-* Check Neutron agents::
-
-    source admin_creds
-    neutron agent-list
-
 
 
 Compute Node
@@ -1166,6 +1166,7 @@ Install Network
     
     rpc_backend = neutron.openstack.common.rpc.impl_kombu
     rabbit_host = controller
+    rabbit_password = RABBIT_PASS
     
     [keystone_authtoken]
     auth_uri = http://controller:5000
