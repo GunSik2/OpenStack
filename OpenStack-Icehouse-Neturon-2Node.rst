@@ -289,34 +289,34 @@ Install the Identity Service (Keystone)
    
    * Create a service entry for the Identity Service::
    
-    keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
+       keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
    
    * Specify an API endpoint for the Identity Service::
    
-    keystone endpoint-create \
-    --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
-    --publicurl=http://192.168.100.21:5000/v2.0 \
-    --internalurl=http://controller:5000/v2.0 \
-    --adminurl=http://controller:35357/v2.0
+      keystone endpoint-create \
+      --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
+      --publicurl=http://192.168.100.21:5000/v2.0 \
+      --internalurl=http://controller:5000/v2.0 \
+      --adminurl=http://controller:35357/v2.0
 
 
 * Verify the Identity Service installation
 
    * Create a simple credential file::
 
-    vi admin_creds
-    #Paste the following: 
-    export OS_TENANT_NAME=admin
-    export OS_USERNAME=admin
-    export OS_PASSWORD=admin_pass
-    export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
+     vi admin_creds
+     #Paste the following: 
+     export OS_TENANT_NAME=admin
+     export OS_USERNAME=admin
+     export OS_PASSWORD=admin_pass
+     export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
 
-    vi demo_creds
-    #Paste the following: 
-    export OS_USERNAME=demo
-    export OS_PASSWORD=demo_pass
-    export OS_TENANT_NAME=demo
-    export OS_AUTH_URL=http://controller:35357/v2.0
+     vi demo_creds
+     #Paste the following: 
+     export OS_USERNAME=demo
+     export OS_PASSWORD=demo_pass
+     export OS_TENANT_NAME=demo
+     export OS_AUTH_URL=http://controller:35357/v2.0
 
    * clear the values in the OS_SERVICE_TOKEN and OS_SERVICE_ENDPOINT environment variables::
    
@@ -324,18 +324,18 @@ Install the Identity Service (Keystone)
 
    * Request a authentication token::
    
-    keystone --os-username=admin --os-password=admin_pass --os-auth-url=http://controller:35357/v2.0 token-get
+     keystone --os-username=admin --os-password=admin_pass --os-auth-url=http://controller:35357/v2.0 token-get
 
    * Load credential admin file::
    
-    source admin_creds
-    keystone token-get
+     source admin_creds
+     keystone token-get
 
    * Load credential file::
    
-    source admin_creds
-    keystone user-list
-    keystone user-role-list --user admin --tenant admin
+     source admin_creds
+     keystone user-list
+     keystone user-role-list --user admin --tenant admin
 
 
 Install the Image Service (Glance)
