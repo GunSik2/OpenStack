@@ -51,6 +51,7 @@ The controller node has two Network Interfaces: eth0 is internal (used for conne
         
     #controller & network
     10.0.1.21       controller
+    192.168.100.21  pcontroller
         
     # compute1  
     10.0.0.31       compute1
@@ -103,6 +104,7 @@ The network node has two network Interfaces: eth0 for management use and eth1 fo
   
     #controller & network
     10.0.1.11       controller
+    192.168.100.21  pcontroller
 
 * Edit network settings to configure the interfaces eth0 and eth1::
 
@@ -293,30 +295,29 @@ Install the Identity Service (Keystone)
    
    * Specify an API endpoint for the Identity Service::
    
-      keystone endpoint-create \
-      --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
-      --publicurl=http://192.168.100.21:5000/v2.0 \
-      --internalurl=http://controller:5000/v2.0 \
-      --adminurl=http://controller:35357/v2.0
-
+       keystone endpoint-create \
+       --service-id=$(keystone service-list | awk '/ identity / {print $2}') \
+       --publicurl=http://pcontroller:5000/v2.0 \
+       --internalurl=http://controller:5000/v2.0 \
+       --adminurl=http://controller:35357/v2.0
 
 * Verify the Identity Service installation
-
+   
    * Create a simple credential file::
 
-     vi admin_creds
-     #Paste the following: 
-     export OS_TENANT_NAME=admin
-     export OS_USERNAME=admin
-     export OS_PASSWORD=admin_pass
-     export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
+       vi admin_creds
+       #Paste the following: 
+       export OS_TENANT_NAME=admin
+       export OS_USERNAME=admin
+       export OS_PASSWORD=admin_pass
+       export OS_AUTH_URL="http://pcontroller:5000/v2.0/"
 
-     vi demo_creds
-     #Paste the following: 
-     export OS_USERNAME=demo
-     export OS_PASSWORD=demo_pass
-     export OS_TENANT_NAME=demo
-     export OS_AUTH_URL=http://controller:35357/v2.0
+       vi demo_creds
+       #Paste the following: 
+       export OS_USERNAME=demo
+       export OS_PASSWORD=demo_pass
+       export OS_TENANT_NAME=demo
+       export OS_AUTH_URL=http://controller:35357/v2.0
 
    * clear the values in the OS_SERVICE_TOKEN and OS_SERVICE_ENDPOINT environment variables::
    
@@ -370,7 +371,7 @@ Install the Image Service (Glance)
        keystone service-create --name=glance --type=image --description="OpenStack Image Service"
        keystone endpoint-create \
        --service-id=$(keystone service-list | awk '/ image / {print $2}') \
-       --publicurl=http://192.168.100.21:9292 \
+       --publicurl=http://pcontroller:9292 \
        --internalurl=http://controller:9292 \
        --adminurl=http://controller:9292
    
@@ -435,7 +436,7 @@ Install the Image Service (Glance)
        source admin_creds
        glance image-create --name="cirros-0.3.2-x86_64" --disk-format=qcow2 \
        --container-format=bare --is-public=true \
-       --copy-from http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
+       --copy-from http://download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
  
    * List Images::
 
@@ -498,7 +499,7 @@ Install the compute Service (Nova)
     keystone service-create --name=nova --type=compute --description="OpenStack Compute"
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ compute / {print $2}') \
-    --publicurl=http://192.168.100.21:8774/v2/%\(tenant_id\)s \
+    --publicurl=http://pcontroller:8774/v2/%\(tenant_id\)s \
     --internalurl=http://controller:8774/v2/%\(tenant_id\)s \
     --adminurl=http://controller:8774/v2/%\(tenant_id\)s
 
@@ -585,7 +586,7 @@ Install the network Service (Neutron)
     
     keystone endpoint-create \
     --service-id=$(keystone service-list | awk '/ network / {print $2}') \
-    --publicurl=http://192.168.100.21:9696 \
+    --publicurl=http://pcontroller:9696 \
     --internalurl=http://controller:9696 \
     --adminurl=http://controller:9696 
 
@@ -686,7 +687,7 @@ Install the dashboard Service (Horizon)
 * Edit /etc/openstack-dashboard/local_settings.py::
     
     vi /etc/openstack-dashboard/local_settings.py
-    ALLOWED_HOSTS = ['localhost', '192.168.100.21']
+    ALLOWED_HOSTS = ['localhost', 'pcontroller']
     OPENSTACK_HOST = "controller"
 
 * Reload Apache and memcached::
@@ -749,14 +750,14 @@ Install the block stroage Service (Cinder)
        keystone service-create --name=cinder --type=volume --description="OpenStack Block Storage"
        keystone endpoint-create \
          --service-id=$(keystone service-list | awk '/ volume / {print $2}') \
-         --publicurl=http://192.168.100.21:8776/v1/%\(tenant_id\)s \
+         --publicurl=http://pcontroller:8776/v1/%\(tenant_id\)s \
          --internalurl=http://controller:8776/v1/%\(tenant_id\)s \
          --adminurl=http://controller:8776/v1/%\(tenant_id\)s
          
        keystone service-create --name=cinderv2 --type=volumev2 --description="OpenStack Block Storage v2"
        keystone endpoint-create \
          --service-id=$(keystone service-list | awk '/ volumev2 / {print $2}') \
-         --publicurl=http://192.168.100.21:8776/v2/%\(tenant_id\)s \
+         --publicurl=http://pcontroller:8776/v2/%\(tenant_id\)s \
          --internalurl=http://controller:8776/v2/%\(tenant_id\)s \
          --adminurl=http://controller:8776/v2/%\(tenant_id\)s
 
@@ -1009,7 +1010,7 @@ The network node runs the Networking plug-in and different agents (see the Figur
     export OS_TENANT_NAME=admin
     export OS_USERNAME=admin
     export OS_PASSWORD=admin_pass
-    export OS_AUTH_URL="http://192.168.100.21:5000/v2.0/"
+    export OS_AUTH_URL="http://pcontroller:5000/v2.0/"
 
 * Check Neutron agents::
 
@@ -1104,7 +1105,7 @@ Install Compute
        vnc_enabled = True
        vncserver_listen = 0.0.0.0
        vncserver_proxyclient_address = 10.0.1.31
-       novncproxy_base_url = http://192.168.100.21:6080/vnc_auto.html
+       novncproxy_base_url = http://pcontroller:6080/vnc_auto.html
        
        [database]
        connection = mysql://nova:NOVA_DBPASS@controller/nova
