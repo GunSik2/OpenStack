@@ -1112,7 +1112,7 @@ Install Compute
        vnc_enabled = True
        vncserver_listen = 0.0.0.0
        vncserver_proxyclient_address = 10.0.1.31
-       novncproxy_base_url = http://pcontroller:6080/vnc_auto.html
+       novncproxy_base_url = http://192.168.100.21:6080/vnc_auto.html
        
        [database]
        connection = mysql://nova:NOVA_DBPASS@controller/nova
