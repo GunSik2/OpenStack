@@ -270,6 +270,152 @@ $ . admin-openrc
 $ openstack token issue
 ```
 
+## Image service
+- Overview
+  - The Image service includes the following components:
+    - glance-api : Accepts Image API calls for image discovery, retrieval, and storage.
+    - glance-registry : Stores, processes, and retrieves metadata about images. (A private internal service)
+    - Database : Stores image metadata 
+    - Storage repository for image files :  Supported including normal file systems, Object Storage, RADOS block devices, HTTP, and Amazon S3
+    - Metadata definition service : A common API to define custom metadata
+- Install and configure
+  - Prerequisites
+```
+$ mysql -u root -p
+CREATE DATABASE glance;
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' \
+  IDENTIFIED BY 'GLANCE_DBPASS';
+GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' \
+  IDENTIFIED BY 'GLANCE_DBPASS';
+$ . admin-openrc
+$ openstack user create --domain default --password-prompt glance
+$ openstack role add --project service --user glance admin
+$ openstack service create --name glance \
+  --description "OpenStack Image" image
+$ openstack endpoint create --region RegionOne \
+  image public http://controller:9292  
+$ openstack endpoint create --region RegionOne \
+  image internal http://controller:9292
+$ openstack endpoint create --region RegionOne \
+  image admin http://controller:9292  
+```
+  - Install and configure components : GLANCE_DBPASS, GLANCE_PASS
+```
+# apt-get install glance
+# vi /etc/glance/glance-api.conf 
+[database]
+...
+connection = mysql+pymysql://glance:GLANCE_DBPASS@controller/glance
+[keystone_authtoken]
+...
+auth_uri = http://controller:5000
+auth_url = http://controller:35357
+memcached_servers = controller:11211
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = glance
+password = GLANCE_PASS
+
+[paste_deploy]
+...
+flavor = keystone
+[glance_store]
+...
+stores = file,http
+default_store = file
+filesystem_store_datadir = /var/lib/glance/images/
+
+# vi /etc/glance/glance-registry.conf
+[database]
+...
+connection = mysql+pymysql://glance:GLANCE_DBPASS@controller/glance
+[keystone_authtoken]
+...
+auth_uri = http://controller:5000
+auth_url = http://controller:35357
+memcached_servers = controller:11211
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = glance
+password = GLANCE_PASS
+
+[paste_deploy]
+...
+flavor = keystone
+
+# su -s /bin/sh -c "glance-manage db_sync" glance
+# service glance-registry restart
+# service glance-api restart
+```
+- Verify operation
+```
+$ . admin-openrc
+$ wget http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+$ openstack image create "cirros" \
+  --file cirros-0.3.4-x86_64-disk.img \
+  --disk-format qcow2 --container-format bare \
+  --public
+$ openstack image list
++--------------------------------------+--------+--------+
+| ID                                   | Name   | Status |
++--------------------------------------+--------+--------+
+| 38047887-61a7-41ea-9b49-27987d5e8bb9 | cirros | active |
++--------------------------------------+--------+--------+
+```
+## Compute service
+- Overview
+  - 
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Networking service 
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Dashboard
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Block Storage service
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Shared File Systems service
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Object Storage service
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
+## Launch an instance
+- Overview
+- Install and configure
+  - Prerequisites
+  - Install and configure components
+- Verify operation
+
 
 Reference
 - http://docs.openstack.org/mitaka/install-guide-ubuntu/common/conventions.html
