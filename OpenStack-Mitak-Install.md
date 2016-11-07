@@ -392,7 +392,7 @@ $ openstack image list
       - nova-xvpvncproxy daemon : Provides a proxy for accessing running instances through a VNC connection. Supports an OpenStack-specific Java client.
       - nova-cert daemon : x509 certificates.
       - nova client : Enables users to submit commands as a tenant administrator or end user.
--Install and configure controller node
+- Install and configure controller node
   - Prerequisites : NOVA_DBPASS 
 ```
 $ mysql -u root -p
@@ -474,7 +474,7 @@ lock_path = /var/lib/nova/tmp
 # service nova-conductor restart
 # service nova-novncproxy restart
 ```
--Install and configure a compute node
+- Install and configure a compute node
   - Install and configure components : RABBIT_PASS, NOVA_PASS, MANAGEMENT_INTERFACE_IP_ADDRESS
 ```
 # apt-get install nova-compute
@@ -542,12 +542,38 @@ $ openstack compute service list
 +----+--------------------+------------+----------+---------+-------+----------------------------+
 ```
 
-
 ## Networking service 
 - Overview
-- Install and configure
+   - Components
+     - neutron-server : Accepts and routes API requests to the appropriate OpenStack Networking plug-in for action
+     - plug-ins and agents : Plugs and unplugs ports, creates networks or subnets, and provides IP addressing.
+     - Messing queue : 
+- Install and configure controller node
   - Prerequisites
+```
+$ mysql -u root -p
+CREATE DATABASE neutron;
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' \
+  IDENTIFIED BY 'NEUTRON_DBPASS';
+GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' \
+  IDENTIFIED BY 'NEUTRON_DBPASS';
+  
+$ . admin-openrc
+$ openstack user create --domain default --password-prompt neutron
+$ openstack role add --project service --user neutron admin
+$ openstack service create --name neutron \
+  --description "OpenStack Networking" network
+$ openstack endpoint create --region RegionOne \
+  network public http://controller:9696
+$ openstack endpoint create --region RegionOne \
+  network internal http://controller:9696  
+$ openstack endpoint create --region RegionOne \
+  network admin http://controller:9696  
+```
   - Install and configure components
+- Install and configure compute node
+  - Prerequisites
+  - Install and configure components  
 - Verify operation
 
 ## Dashboard
