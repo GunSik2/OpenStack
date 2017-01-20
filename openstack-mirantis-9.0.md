@@ -14,6 +14,10 @@
   - https://docs.mirantis.com/openstack/fuel/fuel-9.0/pdf/Mirantis-OpenStack-9.0-QuickStartGuide.pdf
   - https://docs.mirantis.com/openstack/fuel/fuel-9.0/pdf/Mirantis-OpenStack-9.0-ReferenceArchitecture.pdf
   - https://docs.mirantis.com/openstack/fuel/fuel-9.0/pdf/Mirantis-OpenStack-9.0-PlanningGuide.pdf
+- Fuel
+  - https://www.fuel-infra.org
+  - https://wiki.openstack.org/wiki/Fuel#Source_code
+  - https://github.com/openstack/fuel-main
 - Virtualbox
   - https://www.virtualbox.org/wiki/Downloads
 - Blog
