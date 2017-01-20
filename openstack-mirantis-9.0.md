@@ -1,6 +1,7 @@
 
 ## Installation
 - [Quick Start Guide](https://docs.mirantis.com/openstack/fuel/fuel-9.0/quickstart-guide.html#introduction)
+- [Getting Started](https://www.mirantis.com/get-started/)
 
 
 
