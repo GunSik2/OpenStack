@@ -15,4 +15,5 @@
   - https://docs.mirantis.com/openstack/fuel/fuel-9.0/pdf/Mirantis-OpenStack-9.0-PlanningGuide.pdf
 - Virtualbox
   - https://www.virtualbox.org/wiki/Downloads
-  
+- Blog
+  - https://sagarruchandani.wordpress.com/tag/mirantis-openstack/
