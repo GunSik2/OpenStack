@@ -2,6 +2,7 @@
 ## Installation
 - [Install Fuel Node](https://docs.mirantis.com/openstack/fuel/fuel-9.0/quickstart-guide.html#introduction)
 - [Install OpenStack using Fuel UI](https://www.mirantis.com/blog/now-zero-openstack-hosted-website-4-easy-steps/)
+- [Setting up local mirrors](https://docs.mirantis.com/openstack/fuel/fuel-8.0/operations.html#downloading-ubuntu-system-packages)
 
 
 
