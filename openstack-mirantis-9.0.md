@@ -18,6 +18,7 @@
   - https://www.fuel-infra.org
   - https://wiki.openstack.org/wiki/Fuel#Source_code
   - https://github.com/openstack/fuel-main
+  - http://docs.openstack.org/developer/fuel-docs/userdocs/fuel-user-guide.html
 - Virtualbox
   - https://www.virtualbox.org/wiki/Downloads
 - Blog
