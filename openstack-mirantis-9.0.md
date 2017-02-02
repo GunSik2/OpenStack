@@ -4,12 +4,23 @@
 - [Install OpenStack using Fuel UI](https://www.mirantis.com/blog/now-zero-openstack-hosted-website-4-easy-steps/)
 - [Setting up local mirrors](https://docs.mirantis.com/openstack/fuel/fuel-8.0/operations.html#downloading-ubuntu-system-packages)
 
-## Login
+## Management
+- login
 ```
-ssh root@10.20.0.2
-ssh root@10.20.0.3
-ssh root@10.20.0.4
-ssh root@10.20.0.5
+# ssh root@10.20.0.2
+# cat /etc/hosts
+10.20.0.4 controller 
+10.20.0.3 compute 
+10.20.0.5 cinder 
+# ssh root@controller
+```
+- openstack console access: http://172.16.0.3/horizon
+
+- controller
+```
+# ssh root@controller
+# . openrc
+# openstack compute service list
 ```
 
 ## Reference
