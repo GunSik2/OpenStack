@@ -23,6 +23,36 @@
 # openstack compute service list
 ```
 
+## Tenant 설정 
+
+Admin 계정 로그인
+- project 생성 (Identity>Projects)
+- user 생성 (Identity>Users)
+- netowrk 생성 (Network>Networks)
+  - CIDR: 192.168.0.0/24
+  - GW: 192.168.0.1
+  - DNS: 8.8.8.8, 8.8.4.4
+- router 생성 (Network>Routers)
+- subnet interface 생성 (Network>Router >> Interface tab)
+
+Tenant 계정 로그인
+- SSH keypair 생성 (Project>Compute>Access & Security >> keypair tab)
+- Default Security Group Rules 생성 (Project>Compute>Access & Security >> Security Groups tab)
+- Floating IPs 할당 (Project>Compute>Access & Security >> Floating IPs tab)
+
+- 이미지 생성 (Project>Compute>Image >> Create Image)
+  - name (e.g., ubuntu-trusty)
+  - URL: http://uec-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+  - Format, pick QCOW2
+  - Ensure that Copy Data is checked
+- VM 생성 (Project>Compute>Images >> click Lauch instance)
+- VM 테스트 
+```
+ssh -i hellokeypair.pem ubuntu@172.16.0.140
+sudo apt-get update
+sudo apt-get install apache2
+```
+
 ## Reference
 - Mirantis
   - https://www.mirantis.com/get-started/
