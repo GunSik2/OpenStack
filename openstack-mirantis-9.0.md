@@ -4,7 +4,13 @@
 - [Install OpenStack using Fuel UI](https://www.mirantis.com/blog/now-zero-openstack-hosted-website-4-easy-steps/)
 - [Setting up local mirrors](https://docs.mirantis.com/openstack/fuel/fuel-8.0/operations.html#downloading-ubuntu-system-packages)
 
-
+## Login
+```
+ssh root@10.20.0.2
+ssh root@10.20.0.3
+ssh root@10.20.0.4
+ssh root@10.20.0.5
+```
 
 ## Reference
 - Mirantis
