@@ -3,6 +3,10 @@
 - [Install Fuel Node](https://docs.mirantis.com/openstack/fuel/fuel-9.0/quickstart-guide.html#introduction)
 - [Install OpenStack using Fuel UI](https://www.mirantis.com/blog/now-zero-openstack-hosted-website-4-easy-steps/)
 - [Setting up local mirrors](https://docs.mirantis.com/openstack/fuel/fuel-8.0/operations.html#downloading-ubuntu-system-packages)
+## Fule Configuration
+- default network (public network) : 172.16.0.0/24
+- stroage network : 192.168.1.0/24
+- management network : 192.168.0.0/24
 
 ## Management
 - login
@@ -32,8 +36,8 @@ Admin 계정 로그인
 
 Tenant 계정 로그인
 - netowrk 생성 (Network>Networks)
-  - CIDR: 192.168.0.0/24
-  - GW: 192.168.0.1
+  - CIDR: 192.168.10.0/24
+  - GW: 192.168.10.1
   - DNS: 8.8.8.8, 8.8.4.4
 - router 생성 (Network>Routers)
 - subnet interface 생성 (Network>Router >> Interface tab)
