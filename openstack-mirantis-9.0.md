@@ -29,14 +29,14 @@
 Admin 계정 로그인
 - project 생성 (Identity>Projects)
 - user 생성 (Identity>Users)
+
+Tenant 계정 로그인
 - netowrk 생성 (Network>Networks)
   - CIDR: 192.168.0.0/24
   - GW: 192.168.0.1
   - DNS: 8.8.8.8, 8.8.4.4
 - router 생성 (Network>Routers)
 - subnet interface 생성 (Network>Router >> Interface tab)
-
-Tenant 계정 로그인
 - SSH keypair 생성 (Project>Compute>Access & Security >> keypair tab)
 - Default Security Group Rules 생성 (Project>Compute>Access & Security >> Security Groups tab)
 - Floating IPs 할당 (Project>Compute>Access & Security >> Floating IPs tab)
