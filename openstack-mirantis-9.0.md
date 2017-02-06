@@ -18,7 +18,7 @@
 10.20.0.5 cinder 
 # ssh root@controller
 ```
-- fule console access: http://10.20.0.2:8000/ https://10.20.0.2:8443/ https://172.16.0.1:8443/
+- fule console access: http://10.20.0.2:8443/ https://172.16.0.1:8443/ https://192.168.200.15:8443
 - openstack console access: http://172.16.0.3/horizon
 
 - controller
