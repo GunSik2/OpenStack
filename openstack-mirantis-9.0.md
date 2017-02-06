@@ -8,6 +8,15 @@
 - stroage network : 192.168.1.0/24
 - management network : 192.168.0.0/24
 
+## Fule node add
+- add-slave-nodes.sh
+```
+CONFIG_FOR=8G
+ADD_NODES="4 5"
+vm_slave_memory_default=8192
+vm_slave_cpu_default=4
+for idx in $ADD_NODES; do #for idx in $(eval echo {1..$cluster_size}); do
+```
 ## Management
 - login
 ```
