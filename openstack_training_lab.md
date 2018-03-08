@@ -14,4 +14,4 @@ create_ubuntu_cluster_node.bat
 ```
 ## Reference
 - [OpenStack Training Labs](https://docs.openstack.org/training_labs/)
-- [Training Lab Guide with Pike](http://www.netlabsug.org/documentum/Openstack-Laboratory-Guide_v5.0.1-Pike-Release.pdf)
+- [Training Lab Guide with Ocata](http://www.netlabsug.org/documentum/Openstack-Laboratory-Guide_v4.0.3-Ocata-Release.pdf)
