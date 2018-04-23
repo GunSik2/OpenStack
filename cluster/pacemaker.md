@@ -1,6 +1,6 @@
 
 ## Error
-
+- net ip was not match. 
 ```
 $ sudo crm node online primary
 $ sudo crm status
